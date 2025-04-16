@@ -1,0 +1,716 @@
+<!DOCTYPE html>
+<html lang="zh-CN" class="bg-black">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Friday AI - 把讨论，变成生产力</title>
+  
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- DaisyUI -->
+  <link href="https://cdn.jsdelivr.net/npm/daisyui@3.5.0/dist/full.css" rel="stylesheet" type="text/css" />
+  
+  <!-- ECharts -->
+  <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+  
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            primary: '#6366f1',
+            secondary: '#10b981',
+            accent: '#f97316',
+            background: '#000000',
+            surface: '#000000',
+            text: '#f3f4f6',
+          }
+        }
+      }
+    }
+  </script>
+  
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      background-color: #000000 !important;
+      color: #f3f4f6;
+    }
+    
+    .slide {
+      width: 100vw;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      position: absolute;
+      top: 0;
+      left: 0;
+      opacity: 0;
+      transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+      transform: translateY(20px);
+      background-color: #000000;
+    }
+    
+    .slide.active {
+      opacity: 1;
+      transform: translateY(0);
+      z-index: 10;
+    }
+    
+    .bento-grid {
+      display: grid;
+      gap: 1rem;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    }
+    
+    .bento-card {
+      background: rgba(255, 255, 255, 0.03);
+      border-radius: 1rem;
+      padding: 1.5rem;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.5);
+      backdrop-filter: blur(10px);
+      transform: scale(0.95);
+      transition: all 0.3s ease;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+    
+    .bento-card:hover {
+      transform: scale(1);
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    .slide-content {
+      width: 85%;
+      max-width: 1200px;
+      margin: 0 auto;
+      aspect-ratio: 16/9;
+      position: relative;
+    }
+    
+    /* 动画效果 */
+    .animate-fadeIn {
+      animation: fadeIn 1s ease forwards;
+    }
+    
+    .animate-slideUp {
+      animation: slideUp 0.8s ease forwards;
+    }
+    
+    .animate-scaleUp {
+      animation: scaleUp 0.6s ease forwards;
+    }
+    
+    /* 第三页内容切换动画 */
+    .slide3-transition {
+      transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    
+    .slide3-content-left {
+      transform: translateX(-50px);
+      opacity: 0;
+      pointer-events: none;
+    }
+    
+    .slide3-content-right {
+      transform: translateX(50px);
+      opacity: 0;
+      pointer-events: none;
+    }
+    
+    .slide3-content-center {
+      transform: translateX(0);
+      opacity: 1;
+    }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    
+    @keyframes slideUp {
+      from { transform: translateY(30px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+    
+    @keyframes scaleUp {
+      from { transform: scale(0.9); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+    
+    .delay-1 { animation-delay: 0.2s; }
+    .delay-2 { animation-delay: 0.4s; }
+    .delay-3 { animation-delay: 0.6s; }
+    .delay-4 { animation-delay: 0.8s; }
+    
+    /* 导航提示 */
+    .nav-hint {
+      position: absolute;
+      bottom: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      color: rgba(255, 255, 255, 0.5);
+      font-size: 0.9rem;
+    }
+    
+    .nav-hint .arrow {
+      margin: 0 6px;
+      font-size: 1.2rem;
+    }
+  </style>
+</head>
+<body class="dark bg-black text-white">
+  <!-- 第一页：封面 -->
+  <section id="slide1" class="slide active">
+    <div class="slide-content flex flex-col items-center justify-center text-center">
+      <img src="logo.svg" alt="Friday Logo" class="w-24 h-24 mb-8 animate-fadeIn">
+      <h1 class="text-6xl font-bold mb-4 text-transparent bg-clip-text bg-gradient-to-r from-indigo-500 to-purple-600 animate-fadeIn">
+        Friday AI
+      </h1>
+      <p class="text-xl mb-40 text-gray-300 animate-fadeIn delay-1">把讨论，变成生产力</p>
+      
+      <div class="absolute bottom-10 flex justify-center items-center space-x-16 animate-fadeIn delay-3">
+        <div class="flex items-center">
+          <img src="ouyang.jpeg" alt="欧阳志伟" class="w-10 h-10 rounded-full mr-3 object-cover">
+          <div class="text-left">
+            <h3 class="font-medium">欧阳志伟</h3>
+            <p class="text-sm text-gray-400">Lark Design-AI Platform</p>
+          </div>
+        </div>
+        
+        <div class="flex items-center">
+          <img src="linfei.jpeg" alt="林灵飞" class="w-10 h-10 rounded-full mr-3 object-cover">
+          <div class="text-left">
+            <h3 class="font-medium">林灵飞</h3>
+            <p class="text-sm text-gray-400">Meego Engineering-Client</p>
+          </div>
+        </div>
+
+        <div class="flex items-center">
+          <img src="zhang.jpeg" alt="张珏" class="w-10 h-10 rounded-full mr-3 object-cover">
+          <div class="text-left">
+            <h3 class="font-medium">张珏</h3>
+            <p class="text-sm text-gray-400">Lark Design-AI Platform</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="absolute bottom-32 text-center animate-fadeIn delay-2">
+        <p class="text-sm text-indigo-400 font-semibold">团队：飞书设计之魂</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 第二页：理念介绍 -->
+  <section id="slide2" class="slide">
+    <div class="slide-content flex flex-col justify-center">
+      <h2 class="text-4xl font-bold mb-4 text-center text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-purple-500 animate-fadeIn">协作的理想与现实</h2>
+      <p class="text-xl text-center text-gray-300 mb-10 animate-fadeIn delay-1">
+        在飞书，我们相信<span class="text-indigo-400">工具应该助力创造</span>，让协作更流畅
+      </p>
+      
+      <div class="grid grid-cols-2 gap-8">
+        <div class="animate-slideUp delay-2">
+          <div class="bento-card border border-indigo-500/30 bg-gradient-to-br from-indigo-950/20 to-black h-full">
+            <div class="flex flex-col items-center justify-center text-center h-full">
+              <i class="fas fa-comments text-5xl text-indigo-400 mb-4"></i>
+              <h3 class="text-xl font-bold mb-2">思想碰撞</h3>
+              <p class="text-gray-400">会议中的精彩讨论与灵感火花</p>
+            </div>
+          </div>
+        </div>
+        
+        <div class="animate-slideUp delay-3">
+          <div class="bento-card border border-red-500/30 bg-gradient-to-br from-red-950/20 to-black h-full">
+            <div class="flex flex-col items-center justify-center text-center h-full">
+              <i class="fas fa-clock text-5xl text-red-400 mb-4"></i>
+              <h3 class="text-xl font-bold mb-2">现实困境</h3>
+              <p class="text-gray-400">讨论成果难以即时转化，会后整理耗时巨大</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 第三页：痛点和解决方案 -->
+  <section id="slide3" class="slide">
+    <div class="slide-content flex flex-col justify-center">
+      <h2 class="text-4xl font-bold mb-10 text-center text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-purple-500 animate-fadeIn">
+        <span id="slide3-title" class="slide3-transition">协作痛点</span>
+      </h2>
+      
+      <div id="pain-points-container" class="grid grid-cols-3 gap-6 mb-10 slide3-transition slide3-content-center">
+        <div class="bento-card animate-slideUp border border-red-500/30 bg-gradient-to-br from-red-950/20 to-black">
+          <h3 class="text-xl font-bold mb-4 text-accent flex items-center">
+            <i class="fas fa-exclamation-triangle text-red-500 mr-3"></i>
+            需求评审会
+          </h3>
+          <div class="space-y-3">
+            <div class="flex items-center">
+              <i class="fas fa-times-circle text-red-400 mr-2"></i>
+              <p>产品口述需求模糊不清</p>
+            </div>
+            <div class="flex items-center">
+              <i class="fas fa-times-circle text-red-400 mr-2"></i>
+              <p>需求理解各方存在偏差</p>
+            </div>
+            <div class="flex items-center">
+              <i class="fas fa-times-circle text-red-400 mr-2"></i>
+              <p>设计交付时间紧张</p>
+            </div>
+          </div>
+        </div>
+        
+        <div class="bento-card animate-slideUp delay-1 border border-orange-500/30 bg-gradient-to-br from-orange-950/20 to-black">
+          <h3 class="text-xl font-bold mb-4 text-accent flex items-center">
+            <i class="fas fa-palette text-orange-500 mr-3"></i>
+            设计反馈
+          </h3>
+          <div class="space-y-3">
+            <div class="flex items-center">
+              <i class="fas fa-times-circle text-yellow-400 mr-2"></i>
+              <p>设计师理解与需求不符</p>
+            </div>
+            <div class="flex items-center">
+              <i class="fas fa-times-circle text-yellow-400 mr-2"></i>
+              <p>多轮反馈消耗大量时间</p>
+            </div>
+            <div class="flex items-center">
+              <i class="fas fa-times-circle text-yellow-400 mr-2"></i>
+              <p>修改意见难以准确表达</p>
+            </div>
+          </div>
+        </div>
+        
+        <div class="bento-card animate-slideUp delay-2 border border-purple-500/30 bg-gradient-to-br from-purple-950/20 to-black">
+          <h3 class="text-xl font-bold mb-4 text-accent flex items-center">
+            <i class="fas fa-code text-purple-500 mr-3"></i>
+            研发实现
+          </h3>
+          <div class="space-y-3">
+            <div class="flex items-center">
+              <i class="fas fa-times-circle text-purple-400 mr-2"></i>
+              <p>需求文档与设计不一致</p>
+            </div>
+            <div class="flex items-center">
+              <i class="fas fa-times-circle text-purple-400 mr-2"></i>
+              <p>创意难以快速可视化</p>
+            </div>
+            <div class="flex items-center">
+              <i class="fas fa-times-circle text-purple-400 mr-2"></i>
+              <p>跨部门沟通效率低下</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div id="solution-container" class="absolute inset-0 flex flex-col justify-center items-center slide3-transition slide3-content-right">
+        <div class="w-3/4 bento-card animate-scaleUp bg-gradient-to-r from-green-950/30 to-teal-950/30 border border-green-500/30 transform transition-all duration-500">
+          <div class="flex items-center">
+            <div class="rounded-full bg-gradient-to-br from-green-500 to-teal-500 p-4 mr-5">
+              <i class="fas fa-wand-magic-sparkles text-2xl text-white"></i>
+            </div>
+            <div>
+              <h3 class="text-2xl font-bold text-green-400 mb-2">Friday 解决方案</h3>
+              <p class="text-xl text-gray-200">会议中即时生成三方确认的交互原型，让讨论成果一目了然</p>
+              <div class="grid grid-cols-3 gap-4 mt-4">
+                <div class="flex items-center">
+                  <i class="fas fa-check-circle text-green-400 mr-2"></i>
+                  <p>实时记录会议要点</p>
+                </div>
+                <div class="flex items-center">
+                  <i class="fas fa-check-circle text-green-400 mr-2"></i>
+                  <p>自动生成交互原型</p>
+                </div>
+                <div class="flex items-center">
+                  <i class="fas fa-check-circle text-green-400 mr-2"></i>
+                  <p>三方即时确认反馈</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div id="nav-hint" class="nav-hint">
+        <span id="left-hint"><i class="fas fa-arrow-left arrow"></i> 返回上一页</span>
+        <span class="mx-4">|</span>
+        <span id="right-hint">查看解决方案 <i class="fas fa-arrow-right arrow"></i></span>
+      </div>
+    </div>
+  </section>
+
+  <!-- 技术架构页 -->
+  <section id="slide4" class="slide">
+    <div class="slide-content flex flex-col justify-center">
+      <h2 class="text-4xl font-bold mb-10 text-center text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-purple-500 animate-fadeIn">
+        技术架构
+      </h2>
+      
+      <div class="grid gap-6 mb-8">
+        <div class="animate-slideUp">
+          <div class="bento-card border border-indigo-500/30 bg-gradient-to-br from-indigo-950/20 to-black">
+            <div class="flex items-start">
+              <div class="rounded-full bg-gradient-to-br from-indigo-500 to-purple-500 p-3 mr-4 flex-shrink-0">
+                <i class="fas fa-microphone-lines text-xl text-white"></i>
+              </div>
+              <div>
+                <h3 class="text-lg font-bold mb-2 text-indigo-300">音频链路构建</h3>
+                <p class="text-gray-300">通过 blackhole 建立音频回环，构建多组虚拟音频设备，捕获会议音频和用户声音，同时为 Friday 构建专属音频输出设备</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="animate-slideUp delay-1">
+          <div class="bento-card border border-orange-500/30 bg-gradient-to-br from-orange-950/20 to-black">
+            <div class="flex items-start">
+              <div class="rounded-full bg-gradient-to-br from-orange-500 to-red-500 p-3 mr-4 flex-shrink-0">
+                <i class="fas fa-wave-square text-xl text-white"></i>
+              </div>
+              <div>
+                <h3 class="text-lg font-bold mb-2 text-orange-300">语音识别与处理</h3>
+                <p class="text-gray-300">调用火山引擎大模型进行语音识别，本地进行词句断句和增量语句识别，通过 webhook 将数据保存到多维表格</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="animate-slideUp delay-2">
+          <div class="bento-card border border-blue-500/30 bg-gradient-to-br from-blue-950/20 to-black">
+            <div class="flex items-start">
+              <div class="rounded-full bg-gradient-to-br from-blue-500 to-cyan-500 p-3 mr-4 flex-shrink-0">
+                <i class="fas fa-comments text-xl text-white"></i>
+              </div>
+              <div>
+                <h3 class="text-lg font-bold mb-2 text-blue-300">群聊同步</h3>
+                <p class="text-gray-300">通过工作配方将会议群聊天内容实时同步到多维表格</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="animate-slideUp delay-3">
+          <div class="bento-card border border-green-500/30 bg-gradient-to-br from-green-950/20 to-black">
+            <div class="flex items-start">
+              <div class="rounded-full bg-gradient-to-br from-green-500 to-teal-500 p-3 mr-4 flex-shrink-0">
+                <i class="fas fa-database text-xl text-white"></i>
+              </div>
+              <div>
+                <h3 class="text-lg font-bold mb-2 text-green-300">AI 协作中台</h3>
+                <p class="text-gray-300">多维表格作为数据仓储和 AI 协作中台，识别意图并根据意图调用不同的工作流</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="animate-slideUp delay-4">
+          <div class="bento-card border border-purple-500/30 bg-gradient-to-br from-purple-950/20 to-black">
+            <div class="flex items-start">
+              <div class="rounded-full bg-gradient-to-br from-purple-500 to-pink-500 p-3 mr-4 flex-shrink-0">
+                <i class="fas fa-diagram-project text-xl text-white"></i>
+              </div>
+              <div>
+                <h3 class="text-lg font-bold mb-2 text-purple-300">工作流执行</h3>
+                <p class="text-gray-300">对接 n8n/coze 等大模型工作流平台，读取多维表格数据获取上下文进行任务执行调度，结果通过飞书 API 发送到会议群</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 第五页：价值展示 -->
+  <section id="slide5" class="slide">
+    <div class="slide-content flex flex-col">
+      <h2 class="text-4xl font-bold mb-10 text-center text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-purple-500 animate-fadeIn">
+        Friday 让讨论不再悬浮，让每个想法都能快速落地
+      </h2>
+      
+      <div class="grid grid-cols-3 gap-8 mb-8">
+        <div class="col-span-3 mb-4 animate-slideUp">
+          <div class="bento-card border border-indigo-500/30 bg-gradient-to-br from-indigo-950/20 to-black">
+            <div class="flex items-center">
+              <div class="rounded-full bg-indigo-500 p-4 mr-5 flex-shrink-0">
+                <i class="fas fa-microphone-alt text-3xl text-white"></i>
+              </div>
+              <div>
+                <h3 class="text-2xl font-bold mb-2 text-indigo-300">简单一句话，自动生成</h3>
+                <p class="text-xl text-gray-300">只需说 "<span class="text-green-400 font-semibold">Friday 帮我生成...</span>"，AI 自动捕捉会议上下文</p>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="animate-slideUp delay-1">
+          <div class="bento-card border border-purple-500/30 bg-gradient-to-br from-purple-950/20 to-black h-full">
+            <div class="flex flex-col items-center text-center p-2">
+              <div class="w-16 h-16 rounded-full bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center mb-4">
+                <i class="fas fa-bolt-lightning text-2xl text-white"></i>
+              </div>
+              <h3 class="text-xl font-bold mb-3">即时响应</h3>
+              <p>实时分析会议讨论内容，无需等待</p>
+            </div>
+          </div>
+        </div>
+        
+        <div class="animate-slideUp delay-2">
+          <div class="bento-card border border-green-500/30 bg-gradient-to-br from-green-950/20 to-black h-full">
+            <div class="flex flex-col items-center text-center p-2">
+              <div class="w-16 h-16 rounded-full bg-gradient-to-br from-green-500 to-teal-600 flex items-center justify-center mb-4">
+                <i class="fas fa-diagram-project text-2xl text-white"></i>
+              </div>
+              <h3 class="text-xl font-bold mb-3">多样化输出</h3>
+              <p>流程图、原型图、用例图等多种可视化形式</p>
+            </div>
+          </div>
+        </div>
+        
+        <div class="animate-slideUp delay-3">
+          <div class="bento-card border border-amber-500/30 bg-gradient-to-br from-amber-950/20 to-black h-full">
+            <div class="flex flex-col items-center text-center p-2">
+              <div class="w-16 h-16 rounded-full bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center mb-4">
+                <i class="fas fa-users-gear text-2xl text-white"></i>
+              </div>
+              <h3 class="text-xl font-bold mb-3">协作共创</h3>
+              <p>三方实时确认，共同创造最佳方案</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="bg-gradient-to-r from-indigo-900/30 to-purple-900/30 rounded-2xl p-6 border border-indigo-500/20 mt-4 animate-fadeIn delay-4">
+        <div class="flex justify-around items-center">
+          <div class="flex flex-col items-center">
+            <div class="text-5xl font-bold text-white mb-2">85%</div>
+            <p class="text-gray-300">减少会议后整理时间</p>
+          </div>
+          <div class="h-16 w-px bg-gradient-to-b from-transparent via-purple-500/50 to-transparent"></div>
+          <div class="flex flex-col items-center">
+            <div class="text-5xl font-bold text-white mb-2">90%</div>
+            <p class="text-gray-300">提升需求理解准确率</p>
+          </div>
+          <div class="h-16 w-px bg-gradient-to-b from-transparent via-purple-500/50 to-transparent"></div>
+          <div class="flex flex-col items-center">
+            <div class="text-5xl font-bold text-white mb-2">3X</div>
+            <p class="text-gray-300">加速协作迭代流程</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 第五页：Slogan突出展示 -->
+  <section id="slide6" class="slide bg-black">
+    <div class="slide-content flex flex-col items-center justify-center text-center">
+      <div class="animate-scaleUp">
+        <h1 class="text-7xl font-bold mb-6 text-transparent bg-clip-text bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500">
+          Friday AI
+        </h1>
+        <p class="text-3xl text-gray-300">把讨论，变成生产力</p>
+      </div>
+      
+      <div class="mt-12 animate-fadeIn delay-2">
+        <div class="flex flex-wrap justify-center gap-6">
+          <div class="flex items-center bg-black/80 border border-indigo-500/20 rounded-full px-4 py-2">
+            <i class="fas fa-wand-magic-sparkles text-indigo-400 mr-2"></i>
+            <span>智能识别</span>
+          </div>
+          <div class="flex items-center bg-black/80 border border-yellow-500/20 rounded-full px-4 py-2">
+            <i class="fas fa-bolt text-yellow-400 mr-2"></i>
+            <span>即时生成</span>
+          </div>
+          <div class="flex items-center bg-black/80 border border-green-500/20 rounded-full px-4 py-2">
+            <i class="fas fa-diagram-project text-green-400 mr-2"></i>
+            <span>多种可视化</span>
+          </div>
+          <div class="flex items-center bg-black/80 border border-purple-500/20 rounded-full px-4 py-2">
+            <i class="fas fa-comments text-purple-400 mr-2"></i>
+            <span>自然对话</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 结束页：Logo和团队信息 -->
+  <!-- <section id="slide6" class="slide bg-black">
+    <div class="slide-content flex flex-col items-center justify-center text-center">
+      <div class="animate-fadeIn">
+        <img src="logo.svg" alt="Friday Logo" class="w-32 h-32 mb-8">
+        <div class="flex flex-col items-center mb-8">
+          <div class="w-24 h-24 rounded-2xl bg-gradient-to-br from-indigo-600 to-purple-600 flex items-center justify-center mb-4">
+            <i class="fas fa-rocket text-5xl text-white"></i>
+          </div>
+          <h2 class="text-4xl font-bold">Friday</h2>
+        </div>
+        
+        <p class="text-xl mb-8">Friday AI 团队</p>
+        
+        <div class="mt-6">
+          <img src="https://images.unsplash.com/photo-1560250097-0b93528c311a?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=200&h=80&q=80" alt="飞书Logo" class="h-12 opacity-70">
+        </div>
+      </div>
+    </div>
+  </section> -->
+
+  <script>
+    // 幻灯片切换逻辑
+    let currentSlide = 1;
+    const totalSlides = 7;
+    
+    // 第三页状态控制
+    let slide3State = 0; // 0 表示痛点页面，1 表示解决方案页面
+    
+    function showSlide(slideNumber) {
+      // 当在第三页且要去第四页时，确保先显示解决方案
+      if (currentSlide === 3 && slideNumber === 4 && slide3State === 0) {
+        toggleSlide3Content(1); // 显示解决方案
+        return; // 不立即前进到第四页
+      }
+      
+      // 从第五页返回第三页时，显示解决方案
+      if (currentSlide === 5 && slideNumber === 3) {
+        slide3State = 1; // 设置为解决方案状态
+      }
+      
+      // 从第二页前进到第三页时，显示痛点
+      if (currentSlide === 2 && slideNumber === 3) {
+        slide3State = 0; // 设置为痛点状态
+      }
+      
+      // 隐藏所有幻灯片
+      document.querySelectorAll('.slide').forEach(slide => {
+        slide.classList.remove('active');
+      });
+      
+      // 显示当前幻灯片
+      document.getElementById(`slide${slideNumber}`).classList.add('active');
+      
+      currentSlide = slideNumber;
+      
+      // 如果是第三页，根据状态显示内容
+      if (currentSlide === 3) {
+        toggleSlide3Content(slide3State);
+      }
+    }
+    
+    // 切换第三页内容
+    function toggleSlide3Content(state) {
+      const titleEl = document.getElementById('slide3-title');
+      const painPointsEl = document.getElementById('pain-points-container');
+      const solutionEl = document.getElementById('solution-container');
+      const leftHintEl = document.getElementById('left-hint');
+      const rightHintEl = document.getElementById('right-hint');
+      
+      slide3State = state;
+      
+      if (state === 1) {
+        // 显示解决方案
+        titleEl.textContent = 'Friday 解决方案';
+        
+        // 动画：痛点移出左侧，解决方案从右侧进入
+        painPointsEl.classList.remove('slide3-content-center');
+        painPointsEl.classList.add('slide3-content-left');
+        
+        solutionEl.classList.remove('slide3-content-right');
+        solutionEl.classList.add('slide3-content-center');
+        
+        // 更新导航提示
+        leftHintEl.innerHTML = '<i class="fas fa-arrow-left arrow"></i> 返回痛点页面';
+        rightHintEl.innerHTML = '前往下一页 <i class="fas fa-arrow-right arrow"></i>';
+      } else {
+        // 显示痛点
+        titleEl.textContent = '协作痛点';
+        
+        // 动画：解决方案移出右侧，痛点从左侧进入
+        solutionEl.classList.remove('slide3-content-center');
+        solutionEl.classList.add('slide3-content-right');
+        
+        painPointsEl.classList.remove('slide3-content-left');
+        painPointsEl.classList.add('slide3-content-center');
+        
+        // 更新导航提示
+        leftHintEl.innerHTML = '<i class="fas fa-arrow-left arrow"></i> 返回上一页';
+        rightHintEl.innerHTML = '查看解决方案 <i class="fas fa-arrow-right arrow"></i>';
+      }
+    }
+    
+    // 键盘事件监听
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') {
+        if (currentSlide === 3) {
+          // 在第三页时，右箭头先切换到解决方案，再进入下一页
+          if (slide3State === 0) {
+            toggleSlide3Content(1);
+          } else {
+            showSlide(currentSlide + 1);
+          }
+        } else if (currentSlide < totalSlides) {
+          showSlide(currentSlide + 1);
+        }
+      } else if (e.key === 'ArrowLeft' || e.key === 'PageUp') {
+        if (currentSlide === 3) {
+          // 在第三页时，左箭头先切换到痛点，再返回上一页
+          if (slide3State === 1) {
+            toggleSlide3Content(0);
+          } else {
+            showSlide(currentSlide - 1);
+          }
+        } else if (currentSlide > 1) {
+          showSlide(currentSlide - 1);
+        }
+      }
+    });
+    
+    // 点击事件监听，点击屏幕右半部分前进，左半部分后退
+    document.addEventListener('click', (e) => {      
+      const halfWidth = window.innerWidth / 2;
+      if (e.clientX > halfWidth) {
+        // 右侧点击 - 前进
+        if (currentSlide === 3) {
+          // 在第三页时，右侧点击先切换到解决方案，再进入下一页
+          if (slide3State === 0) {
+            toggleSlide3Content(1);
+          } else {
+            showSlide(currentSlide + 1);
+          }
+        } else if (currentSlide < totalSlides) {
+          showSlide(currentSlide + 1);
+        }
+      } else {
+        // 左侧点击 - 后退
+        if (currentSlide === 3) {
+          // 在第三页时，左侧点击先切换到痛点，再返回上一页
+          if (slide3State === 1) {
+            toggleSlide3Content(0);
+          } else {
+            showSlide(currentSlide - 1);
+          }
+        } else if (currentSlide > 1) {
+          showSlide(currentSlide - 1);
+        }
+      }
+    });
+    
+    // 页面加载时初始化
+    document.addEventListener('DOMContentLoaded', () => {
+      // 确保第一张幻灯片显示
+      showSlide(1);
+    });
+  </script>
+</body>
+</html> 
